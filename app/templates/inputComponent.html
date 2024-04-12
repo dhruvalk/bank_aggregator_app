@@ -1,0 +1,39 @@
+{% macro inputComponent(title,filename) -%}
+<div class="flex flex-col justify-center items-center w-1/4 py-4">
+  <div class="flex justify-between items-center w-full">
+    <label class="">{{title}}</label>
+    <form action="/?bank={{title}}" method="post" enctype="multipart/form-data">
+      <input
+        type="file"
+        name="file"
+        id="selectedFile{{title}}"
+        style="display: none"
+        onchange="document.getElementById('fileText{{title}}').innerText = document.getElementById('selectedFile{{title}}').files[0].name"
+      />
+      <input
+        type="submit"
+        value="upload"
+        style="display: none"
+        id="submitFile{{title}}"
+      />
+    </form>
+    <div>
+      <button
+        class="border-2 border-[#00008B] text-[#00008B] px-4 rounded-xl hover:bg-[#00008B] hover:text-white"
+        onclick="document.getElementById('selectedFile{{title}}').click();"
+      >
+        Select File
+      </button>
+      <button
+        class="border-2 border-[#00008B] text-[#00008B] px-4 rounded-xl hover:bg-[#00008B] hover:text-white"
+        onclick="document.getElementById('submitFile{{title}}').click();"
+      >
+        Upload
+      </button>
+    </div>
+  </div>
+  <div class="w-full text-left italic text-sm" id="fileText{{title}}">
+    {{filename}}
+  </div>
+</div>
+{%- endmacro %}

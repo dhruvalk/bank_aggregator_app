@@ -1,8 +1,10 @@
+{% from './inputComponent.html' import inputComponent %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>{{ title }}</title>
     <link
       rel="stylesheet"
@@ -10,9 +12,40 @@
     />
   </head>
   <body>
-    <div class="main-section">
-      <h1>{{ title }}</h1>
-      <p>This is a simple Flask application.</p>
+    <header
+      class="bg-[#00008B] py-4 px-4 flex justify-between items-center text-white"
+    >
+      <div class="h-10 w-10 rounded-full bg-white"></div>
+      <button class="border-2 border-white rounded-xl px-4 py-1 font-bold">
+        Start New
+      </button>
+    </header>
+    <div class="flex justify-center items-center flex-col py-10">
+      <h1 class="font-bold text-5xl">Welcome To BankAgg</h1>
+      <p>A bank statement aggregator-as-a-service</p>
+    </div>
+    <div class="flex justify-center items-center italic text-sm">
+      Select a file for your bank, and click on the upload button to upload it.
+    </div>
+    <div class="py-4 divide-y-2 flex flex-col justify-center items-center">
+      {% for bank in banks %} {{ inputComponent(bank,names[bank]) }} {% endfor
+      %}
+    </div>
+    <div class="flex justify-center items-center mt-4 gap-4">
+      <form action="/files" method="post" enctype="multipart/form-data">
+        <button
+          class="bg-[#00008B] py-1 px-6 text-white border-2 border-[#00008B] rounded-xl"
+          type="submit"
+        >
+          Aggregate
+        </button>
+      </form>
+      <button
+        class="bg-red-500 py-1 px-6 text-white border-2 rounded-xl"
+        type="submit"
+      >
+        Clear All
+      </button>
     </div>
   </body>
 </html>
