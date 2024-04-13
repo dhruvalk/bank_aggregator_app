@@ -32,8 +32,20 @@
       </button>
     </div>
   </div>
-  <div class="w-full text-left italic text-sm" id="fileText{{title}}">
+  {% if filename %}
+  <div
+    class="w-full text-left italic text-sm text-green-500"
+    id="fileText{{title}}"
+  >
     {{filename}}
   </div>
+  {% else %}
+  <div
+    class="w-full text-left italic text-sm text-red-500"
+    id="fileText{{title}}"
+  >
+    {{filename}}
+  </div>
+  {% endif %}
 </div>
 {%- endmacro %}

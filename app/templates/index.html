@@ -16,16 +16,21 @@
       class="bg-[#00008B] py-4 px-4 flex justify-between items-center text-white"
     >
       <div class="h-10 w-10 rounded-full bg-white"></div>
-      <button class="border-2 border-white rounded-xl px-4 py-1 font-bold">
-        Start New
-      </button>
+      <form action="/clear" method="post" enctype="multipart/form-data">
+        <button class="border-2 border-white rounded-xl px-4 py-1 font-bold">
+          Start New
+        </button>
+      </form>
     </header>
     <div class="flex justify-center items-center flex-col py-10">
       <h1 class="font-bold text-5xl">Welcome To BankAgg</h1>
       <p>A bank statement aggregator-as-a-service</p>
     </div>
-    <div class="flex justify-center items-center italic text-sm">
-      Select a file for your bank, and click on the upload button to upload it.
+    <div class="flex justify-center items-center italic text-sm text-center">
+      Select a file for your bank, and click on the upload button to upload
+      it.<br />
+      A red file means the file has not been uploaded yet.<br />
+      A green file means the file has been uploaded.
     </div>
     <div class="py-4 divide-y-2 flex flex-col justify-center items-center">
       {% for bank in banks %} {{ inputComponent(bank,names[bank]) }} {% endfor
@@ -40,12 +45,14 @@
           Aggregate
         </button>
       </form>
-      <button
-        class="bg-red-500 py-1 px-6 text-white border-2 rounded-xl"
-        type="submit"
-      >
-        Clear All
-      </button>
+      <form action="/clear" method="post" enctype="multipart/form-data">
+        <button
+          class="bg-red-500 py-1 px-6 text-white border-2 rounded-xl"
+          type="submit"
+        >
+          Clear All
+        </button>
+      </form>
     </div>
   </body>
 </html>
