@@ -1,5 +1,7 @@
 from flask import render_template, request
 from app import app
+from utils import *
+from io import BytesIO
 
 cache = {'DBS':None, 'Paylah!':None, 'POSB':None, 'UOB':None}
 names = {'DBS':'', 'Paylah!':'', 'POSB':'', 'UOB':''}
@@ -14,16 +16,29 @@ def index():
         print(request.files)
         file_name = file.filename
         names[bank] = file_name
-        cache[bank]=file
-        
+        file_content = BytesIO(file.stream.read())
+        print(file_content)
+        cache[bank] = file_content
+        # cache[bank]=file
     return render_template('index.html', title='Home', banks=['DBS',"Paylah!","POSB","UOB"], names=names )
 
 @app.route('/files', methods=['GET', 'POST'])
 def files():
-    print(cache)
-    # look at the cache, these are the files with the keys as different banks, you can get the file from each key and do what is needed to it
-    return "Look at the python Flask terminal for the files uploaded."
-
+    columns = ['Date','Description','Amount']
+    in_df = pd.DataFrame(columns=columns)
+    out_df = pd.DataFrame(columns=columns)
+    for key,file in cache.items():
+        if file is not None:
+            if key == "POSB":
+                in_df, out_df = append_posb_data(file, in_df, out_df)
+            elif key == "DBS":
+                in_df, out_df = append_dbs_data(file, in_df, out_df)
+            elif key == "UOB":
+                in_df, out_df = append_uob_data(file, in_df, out_df)
+            elif key == "Paylah!":
+                in_df, out_df = append_paylah_data(file, in_df, out_df)
+    return out_df.to_html() + in_df.to_html()
+    
 @app.route('/clear', methods=['GET', 'POST'])
 def clear():
     cache['DBS'] = None
