@@ -3,16 +3,25 @@ import numpy as np
 import PyPDF2
 import re
 import tabula 
+from datetime import datetime
 
 paylah_categories = {}
 paylah_categories['Transfers In'] = ['RECEIVE EGIFT','RECEIVE MONEY FROM']
 paylah_categories['Cashback'] = ['CASHBACK']
-paylah_categories['Transfer Out'] = ['PAYNOW TO','SEND MONEY TO']
+paylah_categories['Transfer Out'] = ['PAYNOW TO','SEND MONEY TO','SEND EGIFT']
 
 posb_categories = {}
 posb_categories['Transport'] = ['BUS/MRT']
 posb_categories['Cash withdrawal'] = ['Cash Withdrawal']
 posb_categories['Transfers In'] = ['INCOMING PAYNOW']
+posb_categories['Transfer Out'] = ["YOUTRIPSI"]
+
+hsbc_categories = {}
+hsbc_categories['Groceries/Shopping'] = ['FAIRPRICE', 'FairPrice', 'NTUC']
+
+uob_categories = {}
+uob_categories['Transport'] = ['BUS/MRT']
+uob_categories['Transfer'] = ["PAYNOW-FAST"]
 
 description_to_remove_set = set(["OTHER", "FAST Payment / Receipt"])
 
@@ -78,9 +87,14 @@ def get_posb_cleaned_data(dfs):
         # Filter rows based on the validity of the "Date" column
         valid_dates_mask = df["Date"].apply(is_date_valid)
         return df[valid_dates_mask]
-    # Filter out rows with invalid dates
+    def convert_date_format(date_str):
+        # Convert date from DD/MM/YYYY to "d MMM" format
+        return datetime.strptime(date_str, '%d/%m/%Y').strftime('%-d %b')
     res_filtered = filter_valid_dates(res)
+    # Convert valid dates to the desired format
+    res_filtered["Date"] = res_filtered["Date"].apply(convert_date_format)
     return res_filtered
+ 
 
 def append_posb_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
@@ -88,6 +102,7 @@ def append_posb_data(FILE_NAME, in_df, out_df):
     df_posb = get_posb_cleaned_data(dfs_posb)
 
     # Drop any extra columns and rename existing columns
+    df_posb.drop(['Balance (SGD)'],axis=1,inplace=True)
     df_posb = df_posb[~df_posb['Description'].str.contains("Funds Transfer TOP-UP TO PAYLAH!")]
     df_posb['Category'] = df_posb.apply(lambda x: categorise_transaction(x,posb_categories), axis=1)
 
@@ -111,7 +126,7 @@ def get_dbs_raw_data(file_name, num_pages):
     # Iterate over pages starting from page 3
     for page_num in range(2,num_pages-1):
         # Read the page with the specified area
-        df = tabula.read_pdf(file_name, pages=[page_num], silent=True, guess=False, stream=True, multiple_tables=True, area=[148,28,710,533])[0]
+        df = tabula.read_pdf(file_name, pages=[page_num], silent=True, guess=False, stream=True, multiple_tables=True, area=[115,28,710,533])[0]
         # Append the DataFrame to the list
         if len(df.columns) == len(dfs_others.columns):
             df.columns = dfs_others.columns
@@ -164,7 +179,8 @@ def append_dbs_data(FILE_NAME, in_df, out_df):
     df_dbs = get_dbs_cleaned_data(dfs_dbs)
 
     # Drop any extra columns and rename existing columns
-    df_dbs.rename(columns={'DETAILS OF TRANSACTIONS': 'Description', 'DATE': 'Date', 'BALANCE($)': 'Balance (SGD)'}, inplace=True)
+    df_dbs.drop(['BALANCE($)'],axis=1,inplace=True)
+    df_dbs.rename(columns={'DETAILS OF TRANSACTIONS': 'Description', 'DATE': 'Date'}, inplace=True)
     df_dbs = df_dbs[~df_dbs['Description'].str.contains("Funds Transfer TOP-UP TO PAYLAH!")]
     df_dbs['Category'] = df_dbs.apply(lambda x: categorise_transaction(x,posb_categories), axis=1)  # use same categories as POSB for now
 
@@ -264,7 +280,6 @@ def append_paylah_data(FILE_NAME, in_df, out_df):
 
     # Clean the data and remove unncessary transactions
     df_paylah = df_paylah[df_paylah['Description']!="TOP UP WALLET FROM MY ACCOUNT"]
-
     df_paylah['Category'] = df_paylah.apply(lambda x: categorise_transaction(x,paylah_categories), axis=1)
 
     # Split into incoming and outgoing funds dfs
@@ -286,7 +301,14 @@ def get_uob_raw_data(FILE_NAME, numPages):
     dfs.drop(columns=columns_to_drop, inplace=True)
     return dfs
 
-def get_uob_cleaned_data(dfs):    
+def get_uob_cleaned_data(dfs): 
+    def convert_date_format(date_str):
+        # Split the date string into day and month abbreviation
+        day, month_abbr = date_str.split()
+        # Capitalize the first letter of the month abbreviation
+        month_abbr = month_abbr.capitalize()
+        return f"{day} {month_abbr}"
+
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
     while i < ROWS:
@@ -300,9 +322,14 @@ def get_uob_cleaned_data(dfs):
                 if pd.notna(description):  # Check if description is not NaN
                     newDescription.append(str(description))
                 i += 1
-            if newDescription[0] == "Debit Card Transaction":
-                newDescription.pop()
+            # Make the transactions look nicer for debit card transactions
+            if newDescription[0] == "Misc DR-Debit Card":
                 newDescription.pop(0)
+                if newDescription:
+                    curr_row["Date"] = convert_date_format(newDescription[0][:6])
+                    newDescription.pop(0)
+            elif newDescription[0] == "PAYNOW-FAST":
+                newDescription.pop(1)
             curr_row["Description"] = ' '.join(newDescription)
             res = pd.concat([res, curr_row.to_frame().T])
         else:
@@ -324,7 +351,11 @@ def append_uob_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
     dfs_uob = get_uob_raw_data(FILE_NAME, num_pages)
     df_uob = get_uob_cleaned_data(dfs_uob)
-    # TO DO: Add more categories
+    # Drop extra column
+    df_uob.drop(['Balance'],axis=1,inplace=True)
+
+    # Categorise
+    df_uob['Category'] = df_uob.apply(lambda x: categorise_transaction(x,uob_categories), axis=1)
 
     # Split into incoming and outgoing funds dfs
     outgoing = df_uob[df_uob['Withdrawals'].notna()].copy()
@@ -379,8 +410,8 @@ def append_hsbc_data(FILE_NAME, in_df, out_df):
     # Drop any extra columns and rename existing columns
     df_hsbc.drop(['Post Date'],axis=1,inplace=True)
     df_hsbc.rename({'Trans Date':"Date"}, axis='columns',inplace=True)
-    # TO DO: Add categories for credit card
-    # res['Category'] = res.apply(lambda x: categorise_transaction(x,paylah_categories), axis=1)
+    # Add categories
+    df_hsbc['Category'] = df_hsbc.apply(lambda x: categorise_transaction(x,hsbc_categories), axis=1)
 
     # Split into incoming and outgoing funds dfs
     outgoing = df_hsbc[df_hsbc['DB/CR']=='DB'].copy()
