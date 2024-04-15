@@ -14,6 +14,8 @@ posb_categories['Transport'] = ['BUS/MRT']
 posb_categories['Cash withdrawal'] = ['Cash Withdrawal']
 posb_categories['Transfers In'] = ['INCOMING PAYNOW']
 
+description_to_remove_set = set(["OTHER", "FAST Payment / Receipt"])
+
 def get_num_pages(file):
     # Create a PDF file reader object
     pdf_reader = PyPDF2.PdfReader(file)
@@ -43,8 +45,7 @@ def get_posb_raw_data(file_name, num_pages):
     dfs.drop(columns=columns_to_drop, inplace=True)
     return dfs
 
-def get_posb_cleaned_data(file_name, dfs):
-    description_to_remove_set = set(["OTHER", "FAST Payment / Receipt"])
+def get_posb_cleaned_data(dfs):
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
     while i < ROWS:
@@ -84,7 +85,7 @@ def get_posb_cleaned_data(file_name, dfs):
 def append_posb_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
     dfs_posb = get_posb_raw_data(FILE_NAME,num_pages)
-    df_posb = get_posb_cleaned_data(FILE_NAME, dfs_posb)
+    df_posb = get_posb_cleaned_data(dfs_posb)
 
     # Drop any extra columns and rename existing columns
     df_posb = df_posb[~df_posb['Description'].str.contains("Funds Transfer TOP-UP TO PAYLAH!")]
@@ -120,14 +121,16 @@ def get_dbs_raw_data(file_name, num_pages):
     dfs.drop(columns=columns_to_drop, inplace=True)
     return dfs
 
-def get_dbs_cleaned_data(file_name, dfs):    
+def get_dbs_cleaned_data(dfs):    
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
-    description_to_remove_set = set(["OTHER", "FAST Payment / Receipt"])
     while i < ROWS:
         description = dfs.iloc[i]["DETAILS OF TRANSACTIONS"]
         if pd.notna(dfs.iloc[i]["DATE"]):
-            newDescription = [str(dfs.iloc[i]["DETAILS OF TRANSACTIONS"])] 
+            if description not in description_to_remove_set:
+                newDescription = [str(description)] 
+            else:
+                newDescription = []
             curr_row = dfs.iloc[i].copy()
             i += 1
             while i < ROWS and pd.isna(dfs.iloc[i]["DATE"]):
@@ -135,6 +138,9 @@ def get_dbs_cleaned_data(file_name, dfs):
                 if pd.notna(description) and description not in description_to_remove_set:  # Check if description is not NaN
                     newDescription.append(str(description))
                 i += 1
+            if newDescription[0] == "Debit Card Transaction":
+                newDescription.pop()
+                newDescription.pop(0)
             curr_row["DETAILS OF TRANSACTIONS"] = ' '.join(newDescription)
             res = pd.concat([res, curr_row.to_frame().T])
         else:
@@ -155,7 +161,7 @@ def get_dbs_cleaned_data(file_name, dfs):
 def append_dbs_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
     dfs_dbs = get_dbs_raw_data(FILE_NAME,num_pages)
-    df_dbs = get_dbs_cleaned_data(FILE_NAME, dfs_dbs)
+    df_dbs = get_dbs_cleaned_data(dfs_dbs)
 
     # Drop any extra columns and rename existing columns
     df_dbs.rename(columns={'DETAILS OF TRANSACTIONS': 'Description', 'DATE': 'Date', 'BALANCE($)': 'Balance (SGD)'}, inplace=True)
@@ -214,7 +220,7 @@ def get_paylah_raw_data(FILE_NAME,num_pages):
     dfs = pd.concat([dfs_page1,dfs_others]).reset_index(drop=True)
     return dfs
 
-def get_paylah_cleaned_data(df_paylah, FILE_NAME):
+def get_paylah_cleaned_data(df_paylah):
     # # Get if amount is DB/CR 
     def assign_cr_db(x):
         if isinstance(x,str) and x[-2:] == 'CR':
@@ -250,7 +256,7 @@ def get_paylah_cleaned_data(df_paylah, FILE_NAME):
 def append_paylah_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
     dfs_paylah = get_paylah_raw_data(FILE_NAME,num_pages)
-    df_paylah = get_paylah_cleaned_data(dfs_paylah, FILE_NAME)
+    df_paylah = get_paylah_cleaned_data(dfs_paylah)
 
     # Drop any extra columns and rename existing columns
     df_paylah.drop(['Ref No'],axis=1,inplace=True)
