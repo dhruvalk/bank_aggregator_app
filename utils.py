@@ -331,3 +331,57 @@ def append_uob_data(FILE_NAME, in_df, out_df):
     incoming.drop(['Withdrawals'],axis=1,inplace=True)
     in_df = pd.concat([in_df,incoming],ignore_index=True)
     return in_df, out_df
+
+def get_hsbc_raw_data(FILE_NAME, num_pages):
+    page1_hsbc = tabula.read_pdf(FILE_NAME, pages="1", silent=False, guess = False, stream = True, multiple_tables=False, area=[242,49,558,382])[0]
+    page1_hsbc.columns = ["Date Date Description", "Amount"]
+    dfs_others = pd.DataFrame(columns=page1_hsbc.columns)
+    # skips page 2 as it is usually some t&c page 
+    for page_num in range(3,num_pages+1):
+        df = tabula.read_pdf(FILE_NAME, pages=[page_num], silent=True, guess=False, stream=True, multiple_tables=True, area=[153, 39, 816, 382])[0]
+        df.columns = ["Date Date Description", "Amount"]
+        dfs_others = pd.concat([dfs_others, df], ignore_index=True)
+    dfs = pd.concat([page1_hsbc,dfs_others])
+    return dfs 
+
+def get_hsbc_cleaned_data(dfs):
+    dfs = dfs[pd.notna(dfs["Amount"])]
+    dfs[["Post Date", "Trans Date", "Description"]] = dfs["Date Date Description"].str.extract(r'(\d+\s+\w+)\s+(\d+\s+\w+)\s+(.*)')
+    dfs.drop("Date Date Description", axis=1, inplace=True)
+    dfs.dropna(subset=['Description'], inplace=True)
+    desired_order = ["Post Date", "Trans Date", "Description", "Amount"]
+    dfs = dfs.reindex(columns = desired_order)
+    def assign_cr_db(x):
+        if x[-2:] == 'CR':
+            return 'CR'
+        else:
+            return 'DB'
+    def clean_amount(x):
+        if x[-2:] == 'CR':
+            return x[:-2]  
+        else:
+            return x
+    dfs["DB/CR"] = dfs["Amount"].apply(assign_cr_db)
+    dfs["Amount"] = dfs["Amount"].apply(clean_amount)
+    dfs = dfs.reset_index(drop=True)
+    return dfs
+
+def append_hsbc_data(FILE_NAME, in_df, out_df):
+    num_pages = get_num_pages(FILE_NAME)
+    dfs_hsbc = get_hsbc_raw_data(FILE_NAME, num_pages)
+    df_hsbc = get_hsbc_cleaned_data(dfs_hsbc)
+    # Drop any extra columns and rename existing columns
+    df_hsbc.drop(['Post Date'],axis=1,inplace=True)
+    df_hsbc.rename({'Trans Date':"Date"}, axis='columns',inplace=True)
+    # TO DO: Add categories for credit card
+    # res['Category'] = res.apply(lambda x: categorise_transaction(x,paylah_categories), axis=1)
+
+    # Split into incoming and outgoing funds dfs
+    outgoing = df_hsbc[df_hsbc['DB/CR']=='DB'].copy()
+    outgoing.drop(['DB/CR'],axis=1,inplace=True)
+    out_df = pd.concat([out_df,outgoing],ignore_index=True)
+
+    incoming = df_hsbc[df_hsbc['DB/CR']=='CR'].copy()
+    incoming.drop(['DB/CR'],axis=1,inplace=True)
+    in_df = pd.concat([in_df,incoming],ignore_index=True)
+    return in_df, out_df

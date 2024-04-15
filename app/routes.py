@@ -3,8 +3,9 @@ from app import app
 from utils import *
 from io import BytesIO
 
-cache = {'DBS':None, 'Paylah!':None, 'POSB':None, 'UOB':None}
-names = {'DBS':'', 'Paylah!':'', 'POSB':'', 'UOB':''}
+cache = {'DBS':None, 'Paylah!':None, 'POSB':None, 'UOB':None, 'HSBC':None}
+names = {'DBS':'', 'Paylah!':'', 'POSB':'', 'UOB':'', 'HSBC':''}
+banks = ['DBS',"Paylah!","POSB","UOB","HSBC"]
 
 @app.route('/',methods=['GET', 'POST'])
 @app.route('/index')
@@ -20,7 +21,7 @@ def index():
         print(file_content)
         cache[bank] = file_content
         # cache[bank]=file
-    return render_template('index.html', title='Home', banks=['DBS',"Paylah!","POSB","UOB"], names=names )
+    return render_template('index.html', title='Home', banks=banks, names=names )
 
 @app.route('/files', methods=['GET', 'POST'])
 def files():
@@ -37,6 +38,8 @@ def files():
                 in_df, out_df = append_uob_data(file, in_df, out_df)
             elif key == "Paylah!":
                 in_df, out_df = append_paylah_data(file, in_df, out_df)
+            elif key == "HSBC":
+                in_df, out_df = append_hsbc_data(file,in_df,out_df)
     return out_df.to_html() + in_df.to_html()
     
 @app.route('/clear', methods=['GET', 'POST'])
@@ -49,4 +52,4 @@ def clear():
     names['Paylah!'] = ''
     names['POSB'] = ''
     names['UOB'] = ''
-    return render_template('index.html', title='Home', banks=['DBS',"Paylah!","POSB","UOB"], names=names )
+    return render_template('index.html', title='Home', banks=banks, names=names )
