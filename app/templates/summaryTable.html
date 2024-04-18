@@ -1,0 +1,47 @@
+{% from './headerComponent.html' import headerComponent %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>{{ title }}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    {{ headerComponent('Summary') }}
+    <div class="flex justfiy-center items-center flex-col">
+      <div>
+        <canvas id="myChart" class="w-full h-[450px]"></canvas>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript">
+      const ctx = document.getElementById("myChart").getContext("2d");
+      var labels = "{{labels}}".split("&lt;&gt;");
+      var data = "{{data}}".substring(1, "{{data}}".length - 1).split(",");
+      const myChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Inflow",
+              data: data,
+              borderWidth: 1,
+            },
+            {
+              label: "Outflow",
+              data: data,
+              borderWidth: 1,
+            },
+          ],
+        },
+      });
+    </script>
+  </body>
+</html>

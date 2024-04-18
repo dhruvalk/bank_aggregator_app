@@ -1,0 +1,39 @@
+{% macro headerComponent(selected) -%}
+<div>
+  <header
+    class="bg-[#00008B] py-4 px-4 flex justify-between items-center text-white"
+  >
+    <div class="h-10 w-10 rounded-full bg-white"></div>
+    <div
+      class="flex justfiy-center items-center gap-4 bg-white rounded-full px-4 py-2"
+    >
+      {% if selected=='Summary' %}
+      <div class="bg-[#00008B] text-white font-bond px-6 py-1 rounded-full">
+        Summary
+      </div>
+      {% else %}
+      <div class="text-black font-bond px-6 py-1 rounded-full">
+        <form action="/summary" method="post" enctype="multipart/form-data">
+          <button>Summary</button>
+        </form>
+      </div>
+      {% endif %} {% if selected=='Breakdown' %}
+      <div class="bg-[#00008B] text-white font-bond px-6 py-1 rounded-full">
+        Breakdown
+      </div>
+      {% else %}
+      <div class="text-black font-bond px-6 py-1 rounded-full">
+        <form action="/breakdown" method="post" enctype="multipart/form-data">
+          <button>Breakdown</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    <form action="/clear" method="post" enctype="multipart/form-data">
+      <button class="border-2 border-white rounded-xl px-4 py-1 font-bold">
+        Start New
+      </button>
+    </form>
+  </header>
+</div>
+{%- endmacro %}
