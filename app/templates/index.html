@@ -15,7 +15,12 @@
     <header
       class="bg-[#00008B] py-4 px-4 flex justify-between items-center text-white"
     >
-      <div class="h-10 w-10 rounded-full bg-white"></div>
+      <img
+        src="{{url_for('static', filename='logo.png')}}"
+        alt="logo"
+        class="h-[50px]"
+      />
+
       <form action="/clear" method="post" enctype="multipart/form-data">
         <button class="border-2 border-white rounded-xl px-4 py-1 font-bold">
           Start New

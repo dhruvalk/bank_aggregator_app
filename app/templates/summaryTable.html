@@ -14,8 +14,31 @@
   </head>
   <body>
     {{ headerComponent('Summary') }}
-    <div class="flex justfiy-center items-center flex-col">
-      <div>
+    <div class="flex justfiy-between items-start p-8 gap-16">
+      <div class="flex justify-center items-center gap-8 my-8 w-2/5">
+        <div class="flex flex-col gap-8 justfiy-center items-center w-1/2">
+          <div
+            class="bg-white border border-gray-300 rounded-xl w-full flex flex-col justify-center items-center py-4"
+          >
+            <div class="text-3xl text-green-500">${{totalIn}}</div>
+            <div class="text-gray-500">Inflow</div>
+          </div>
+          <div class="w-full px-12"><canvas id="myChart2"></canvas></div>
+        </div>
+        <div class="flex flex-col gap-8 justfiy-center items-center w-1/2">
+          <div
+            class="bg-white border border-gray-300 rounded-xl w-full flex flex-col justify-center items-center py-4"
+          >
+            <div class="text-3xl text-red-500">${{totalOut}}</div>
+            <div class="text-gray-500">Outflow</div>
+          </div>
+          <div class="w-full px-12"><canvas id="myChart3"></canvas></div>
+        </div>
+      </div>
+      <div class="w-3/5">
+        <div class="w-full text-center text-2xl mb-4">
+          Aggregated inflow and outflow ($)
+        </div>
         <canvas id="myChart" class="w-full h-[450px]"></canvas>
       </div>
     </div>
@@ -23,7 +46,12 @@
     <script type="text/javascript">
       const ctx = document.getElementById("myChart").getContext("2d");
       var labels = "{{labels}}".split("&lt;&gt;");
-      var data = "{{data}}".substring(1, "{{data}}".length - 1).split(",");
+      var inGraph = "{{inGraph}}"
+        .substring(1, "{{inGraph}}".length - 1)
+        .split(",");
+      var outGraph = "{{outGraph}}"
+        .substring(1, "{{outGraph}}".length - 1)
+        .split(",");
       const myChart = new Chart(ctx, {
         type: "bar",
         data: {
@@ -31,13 +59,46 @@
           datasets: [
             {
               label: "Inflow",
-              data: data,
+              data: inGraph,
               borderWidth: 1,
             },
             {
               label: "Outflow",
-              data: data,
+              data: outGraph,
               borderWidth: 1,
+            },
+          ],
+        },
+      });
+      var xValues1 = "{{cat_in_name}}".split("&lt;&gt;");
+      var yValues1 = "{{cat_in_vals}}"
+        .substring(1, "{{cat_in_vals}}".length - 1)
+        .split(",");
+
+      const myChart2 = new Chart("myChart2", {
+        type: "pie",
+        data: {
+          labels: xValues1,
+          datasets: [
+            {
+              data: yValues1,
+            },
+          ],
+        },
+      });
+
+      var xValues2 = "{{cat_out_name}}".split("&lt;&gt;");
+      var yValues2 = "{{cat_out_vals}}"
+        .substring(1, "{{cat_out_vals}}".length - 1)
+        .split(",");
+
+      const myChart3 = new Chart("myChart3", {
+        type: "pie",
+        data: {
+          labels: xValues2,
+          datasets: [
+            {
+              data: yValues2,
             },
           ],
         },
