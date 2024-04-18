@@ -101,6 +101,8 @@ def breakdown():
         in_df = dfs['in_df'].drop(columns=["week"])
     if "week" in dfs['out_df'].columns: 
         out_df = dfs['out_df'].drop(columns=["week"])
+    in_df["Date"] = in_df["Date"].apply(lambda x: x.strftime('%d %b'))
+    out_df["Date"] = out_df["Date"].apply(lambda x: x.strftime('%d %b'))
     return render_template("breakdownTable.html",title='Breakdown', in_df=in_df, out_df=out_df, in_categories=in_categories, out_categories=out_categories)
 
 
