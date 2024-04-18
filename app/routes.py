@@ -76,8 +76,6 @@ def summary():
 @app.route('/breakdown', methods=['GET', 'POST'])
 def breakdown():
     columns = ['Date','Description','Amount', 'Category']
-    in_categories = ["All", "Transfers In","Others"]
-    out_categories= ["All", "Transport", "Food", "Shopping","Others"]
     if len(dfs['in_df']) == 0 and len(dfs['out_df']) == 0:
         in_df = pd.DataFrame(columns=columns)
         out_df = pd.DataFrame(columns=columns)
@@ -97,11 +95,13 @@ def breakdown():
         dfs['out_df'] = out_df
     in_categories = dfs['in_df']["Category"].unique()
     out_categories = dfs['out_df']["Category"].unique()
-    in_categories = np.append(in_categories, "All")
-    out_categories = np.append(out_categories, "All")
-    print(in_categories)
-    print(out_categories)
-    return render_template("breakdownTable.html",title='Breakdown', in_df=dfs['in_df'], out_df=dfs['out_df'], in_categories=in_categories, out_categories=out_categories)
+    in_categories = np.insert(in_categories, 0, "All")
+    out_categories = np.insert(out_categories, 0, "All")
+    if "week" in dfs['in_df'].columns:
+        in_df = dfs['in_df'].drop(columns=["week"])
+    if "week" in dfs['out_df'].columns: 
+        out_df = dfs['out_df'].drop(columns=["week"])
+    return render_template("breakdownTable.html",title='Breakdown', in_df=in_df, out_df=out_df, in_categories=in_categories, out_categories=out_categories)
 
 
     

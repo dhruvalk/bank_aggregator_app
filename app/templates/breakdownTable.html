@@ -141,15 +141,13 @@
         var in_categories_select = document.getElementById("in_categories");
         var out_categories_select = document.getElementById("out_categories");
         if (selectedTableType === "outgoing") {
-          console.log(selectedTableType);
-          outTable.style.display = "block";
+          outTable.style.display = "";
           out_categories_select.style.display = "block";
           inTable.style.display = "none";
           in_categories_select.style.display = "none";
         } else {
-          console.log(selectedTableType);
           outTable.style.display = "none";
-          inTable.style.display = "block";
+          inTable.style.display = "";
           in_categories_select.style.display = "block";
           out_categories_select.style.display = "none";
         }
