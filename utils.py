@@ -55,6 +55,12 @@ def get_posb_raw_data(file_name, num_pages):
     return dfs
 
 def get_posb_cleaned_data(dfs):
+    def convert_date_format(date_str):
+        # Split the date string into day and month abbreviation
+        day, month_abbr = date_str[:2], date_str[2:]
+        # Capitalize the first letter of the month abbreviation
+        month_abbr = month_abbr.capitalize()
+        return f"{day} {month_abbr}"
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
     while i < ROWS:
@@ -74,26 +80,24 @@ def get_posb_cleaned_data(dfs):
             if newDescription[0] == "Debit Card Transaction":
                 newDescription.pop()
                 newDescription.pop(0)
+                curr_row["Date"] = convert_date_format(newDescription[0][-5:])
+                newDescription[0] = newDescription[0][:-5]
             curr_row["Description"] = ' '.join(newDescription)
             res = pd.concat([res, curr_row.to_frame().T])
         else:
             i += 1
-    def is_date_valid(date_str):
-        # Define the date pattern (assuming MM/DD/YYYY format)
-        date_pattern = r'\d{2}/\d{2}/\d{4}'
-        # Check if the date string matches the pattern
-        return re.fullmatch(date_pattern, str(date_str)) is not None
-    def filter_valid_dates(df):
-        # Filter rows based on the validity of the "Date" column
-        valid_dates_mask = df["Date"].apply(is_date_valid)
-        return df[valid_dates_mask]
     def convert_date_format(date_str):
-        # Convert date from DD/MM/YYYY to "d MMM" format
-        return datetime.strptime(date_str, '%d/%m/%Y').strftime('%-d %b')
-    res_filtered = filter_valid_dates(res)
+        try:
+            # Attempt to parse the date string
+            date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+            # If successful, format the date in "d MMM" format
+            return date_obj.strftime('%-d %b')
+        except ValueError:
+            # If parsing fails, return the original string
+            return date_str
     # Convert valid dates to the desired format
-    res_filtered["Date"] = res_filtered["Date"].apply(convert_date_format)
-    return res_filtered
+    res["Date"] = res["Date"].apply(convert_date_format)
+    return res
  
 
 def append_posb_data(FILE_NAME, in_df, out_df):
@@ -136,7 +140,13 @@ def get_dbs_raw_data(file_name, num_pages):
     dfs.drop(columns=columns_to_drop, inplace=True)
     return dfs
 
-def get_dbs_cleaned_data(dfs):    
+def get_dbs_cleaned_data(dfs):
+    def convert_date_format(date_str):
+        # Split the date string into day and month abbreviation
+        day, month_abbr = date_str[:2], date_str[2:]
+        # Capitalize the first letter of the month abbreviation
+        month_abbr = month_abbr.capitalize()
+        return f"{day} {month_abbr}"   
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
     while i < ROWS:
@@ -156,6 +166,8 @@ def get_dbs_cleaned_data(dfs):
             if newDescription[0] == "Debit Card Transaction":
                 newDescription.pop()
                 newDescription.pop(0)
+                curr_row["DATE"] = convert_date_format(newDescription[0][-5:])
+                newDescription[0] = newDescription[0][:-5]
             curr_row["DETAILS OF TRANSACTIONS"] = ' '.join(newDescription)
             res = pd.concat([res, curr_row.to_frame().T])
         else:
