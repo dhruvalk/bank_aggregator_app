@@ -75,28 +75,33 @@ def summary():
 
 @app.route('/breakdown', methods=['GET', 'POST'])
 def breakdown():
-    columns = ['Date','Description','Amount']
-
-    if len(dfs['in_df']) != 0 and len(dfs['out_df']) != 0:
-        return render_template("breakdownTable.html",title='Breakdown', in_df=dfs['in_df'], out_df=dfs['out_df'])
-
-    in_df = pd.DataFrame(columns=columns)
-    out_df = pd.DataFrame(columns=columns)
-    for key,file in cache.items():
-        if file is not None:
-            if key == "POSB":
-                in_df, out_df = append_posb_data(file, in_df, out_df)
-            elif key == "DBS":
-                in_df, out_df = append_dbs_data(file, in_df, out_df)
-            elif key == "UOB":
-                in_df, out_df = append_uob_data(file, in_df, out_df)
-            elif key == "Paylah!":
-                in_df, out_df = append_paylah_data(file, in_df, out_df)
-            elif key == "HSBC":
-                in_df, out_df = append_hsbc_data(file,in_df,out_df)
-    dfs['in_df'] = in_df
-    dfs['out_df'] = out_df
-    return render_template("breakdownTable.html",title='Breakdown', in_df=in_df, out_df=out_df)
+    columns = ['Date','Description','Amount', 'Category']
+    in_categories = ["All", "Transfers In","Others"]
+    out_categories= ["All", "Transport", "Food", "Shopping","Others"]
+    if len(dfs['in_df']) == 0 and len(dfs['out_df']) == 0:
+        in_df = pd.DataFrame(columns=columns)
+        out_df = pd.DataFrame(columns=columns)
+        for key,file in cache.items():
+            if file is not None:
+                if key == "POSB":
+                    in_df, out_df = append_posb_data(file, in_df, out_df)
+                elif key == "DBS":
+                    in_df, out_df = append_dbs_data(file, in_df, out_df)
+                elif key == "UOB":
+                    in_df, out_df = append_uob_data(file, in_df, out_df)
+                elif key == "Paylah!":
+                    in_df, out_df = append_paylah_data(file, in_df, out_df)
+                elif key == "HSBC":
+                    in_df, out_df = append_hsbc_data(file,in_df,out_df)
+        dfs['in_df'] = in_df
+        dfs['out_df'] = out_df
+    in_categories = dfs['in_df']["Category"].unique()
+    out_categories = dfs['out_df']["Category"].unique()
+    in_categories = np.append(in_categories, "All")
+    out_categories = np.append(out_categories, "All")
+    print(in_categories)
+    print(out_categories)
+    return render_template("breakdownTable.html",title='Breakdown', in_df=dfs['in_df'], out_df=dfs['out_df'], in_categories=in_categories, out_categories=out_categories)
 
 
     

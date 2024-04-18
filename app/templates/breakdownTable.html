@@ -13,5 +13,147 @@
   </head>
   <body>
     {{ headerComponent('Breakdown') }}
+    <div class="flex flex-row my-8 mx-16 gap-6 justify-between">
+      <div class="flex flex-col w-1/3 gap-6 text-lg">
+        <div class="flex flex-col gap-2 text-lg">
+          <p class="font-bold">Select incoming/outgoing:</p>
+          <select id="tableSelect" class="w-3/5">
+            <option value="incoming">Incoming</option>
+            <option value="outgoing">Outgoing</option>
+          </select>
+        </div>
+        <div id="in_categories" class="flex flex-col gap-2 text-lg">
+          <p class="font-bold">Select a category:</p>
+          <select id="inCategorySelect" class="w-3/5 text-black">
+            {% for category in in_categories %}
+            <option class="text-black" value="{{ category }}">
+              {{ category }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div
+          id="out_categories"
+          class="flex flex-col gap-2 text-lg"
+          style="display: none"
+        >
+          <p class="font-bold">Select a category:</p>
+          <select id="outCategorySelect" class="w-3/5 text-black">
+            {% for category in out_categories %}
+            <option class="text-black" value="{{ category }}">
+              {{ category }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end items-center">
+        <table id="inTable" class="table table-auto">
+          <thead class="table-header-group">
+            <tr>
+              {% for col in in_df.columns %}
+              <th class="border px-4 py-2 bg-[#00008B] text-white">
+                {{ col }}
+              </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody id="inTableBody">
+            {% for index, row in in_df.iterrows() %}
+            <tr>
+              {% for col in in_df.columns %}
+              <td class="border px-4 py-2">{{ row[col] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <table id="outTable" class="table table-auto" style="display: none">
+          <thead class="table-header-group">
+            <tr>
+              {% for col in out_df.columns %}
+              <th class="border px-4 py-2 bg-[#00008B] text-white">
+                {{ col }}
+              </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody id="outTableBody">
+            {% for index, row in out_df.iterrows() %}
+            <tr>
+              {% for col in out_df.columns %}
+              <td class="border px-4 py-2">{{ row[col] }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      document
+        .getElementById("inCategorySelect")
+        .addEventListener("change", filterByCategory, false);
+
+      document
+        .getElementById("outCategorySelect")
+        .addEventListener("change", filterByCategory, false);
+
+      function filterByCategory() {
+        var selectedCategory = this.value; // Get the selected category
+        console.log(selectedCategory);
+        if (document.getElementById("tableSelect").value === "incoming") {
+          var tableRows = document
+            .getElementById("inTableBody")
+            .getElementsByTagName("tr");
+        } else {
+          var tableRows = document
+            .getElementById("outTableBody")
+            .getElementsByTagName("tr");
+        }
+        if (selectedCategory == "All") {
+          for (var i = 0; i < tableRows.length; i++) {
+            tableRows[i].style.display = "";
+          }
+          return;
+        }
+        for (var i = 0; i < tableRows.length; i++) {
+          var cells = tableRows[i].getElementsByTagName("td"); // Get the category cell
+          for (var j = 0; j < cells.length; j++) {
+            console.log(cells[j].textContent);
+            if (cells[j].textContent === selectedCategory) {
+              tableRows[i].style.display = ""; // Show the row if the category matches
+            } else {
+              tableRows[i].style.display = "none"; // Hide the row if the category doesn't match
+            }
+          }
+        }
+      }
+
+      document
+        .getElementById("tableSelect")
+        .addEventListener("change", displayTable, false);
+
+      function displayTable() {
+        var selectedTableType = this.value;
+        var outTable = document.getElementById("outTable");
+        var inTable = document.getElementById("inTable");
+        var in_categories_select = document.getElementById("in_categories");
+        var out_categories_select = document.getElementById("out_categories");
+        if (selectedTableType === "outgoing") {
+          console.log(selectedTableType);
+          outTable.style.display = "block";
+          out_categories_select.style.display = "block";
+          inTable.style.display = "none";
+          in_categories_select.style.display = "none";
+        } else {
+          console.log(selectedTableType);
+          outTable.style.display = "none";
+          inTable.style.display = "block";
+          in_categories_select.style.display = "block";
+          out_categories_select.style.display = "none";
+        }
+      }
+    </script>
   </body>
 </html>
