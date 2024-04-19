@@ -8,16 +8,19 @@ from datetime import datetime
 paylah_categories = {}
 paylah_categories['Transfers In'] = ['RECEIVE EGIFT','RECEIVE MONEY FROM']
 paylah_categories['Cashback'] = ['CASHBACK']
+paylah_categories['Food'] = ['KOPITIAM','IKEA', 'YA KUN', 'HVALA', 'BAKERY']
 paylah_categories['Transfer Out'] = ['PAYNOW TO','SEND MONEY TO','SEND EGIFT']
 
 posb_categories = {}
 posb_categories['Transport'] = ['BUS/MRT']
-posb_categories['Cash withdrawal'] = ['Cash Withdrawal']
+posb_categories['Cash withdrawal'] = ['CASH WITHDRAWAL']
 posb_categories['Transfers In'] = ['INCOMING PAYNOW']
 posb_categories['Transfer Out'] = ["YOUTRIPSI"]
+posb_categories['Food'] = ['KOPITIAM','IKEA', 'YA KUN', 'HVALA', 'BAKERY', 'ACAI']
+posb_categories['Shopping/Groceries'] = ['FAIRPRICE', 'FairPrice', 'NTUC', 'SCARLETT']
 
 hsbc_categories = {}
-hsbc_categories['Groceries/Shopping'] = ['FAIRPRICE', 'FairPrice', 'NTUC']
+hsbc_categories['Groceries/Shopping'] = ['FAIRPRICE', 'NTUC']
 
 uob_categories = {}
 uob_categories['Transport'] = ['BUS/MRT']
