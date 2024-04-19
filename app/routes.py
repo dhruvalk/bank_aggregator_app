@@ -52,10 +52,10 @@ def summary():
     in_df = dfs['in_df']
     in_df['week']=in_df['Date'].dt.isocalendar().week
     in_df['Amount'] = in_df['Amount'].astype(str).str.replace(',','').astype(float)
-    inVals = in_df.groupby(['week'])['Amount'].mean().tolist()
+    inVals = in_df.groupby(['week'])['Amount'].sum().tolist()
     out_df['week']=out_df['Date'].dt.isocalendar().week
     out_df['Amount'] = out_df['Amount'].astype(str).str.replace(',','').astype(float)
-    outVals = out_df.groupby(['week'])['Amount'].mean().tolist()
+    outVals = out_df.groupby(['week'])['Amount'].sum().tolist()
     labels  = ['Week '+ str(x) for x in range(1,1+len(set(in_df['week'].tolist() + out_df['week'].tolist())))]
     while len(inVals) != len(labels):
         inVals.append(0)
@@ -64,8 +64,8 @@ def summary():
     labels = '<>'.join(labels)
     in_df['Category'].fillna('Others',inplace=True)
     out_df['Category'].fillna('Others',inplace=True)
-    categories_in = in_df.groupby(['Category'])['Amount'].mean().to_dict()
-    categories_out = out_df.groupby(['Category'])['Amount'].mean().to_dict()
+    categories_in = in_df.groupby(['Category'])['Amount'].sum().to_dict()
+    categories_out = out_df.groupby(['Category'])['Amount'].sum().to_dict()
     cat_in_name = '<>'.join(categories_in.keys())
     cat_in_vals = list(categories_in.values())
     cat_out_name = '<>'.join(categories_out.keys())
