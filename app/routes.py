@@ -70,8 +70,13 @@ def summary():
     cat_in_vals = list(categories_in.values())
     cat_out_name = '<>'.join(categories_out.keys())
     cat_out_vals = list(categories_out.values())
+    month = in_df['Date'].iloc[0].strftime('%b').upper()
+    year = in_df['Date'].iloc[0].strftime('%Y')
+    banks = ','.join([key for key in cache.keys() if cache[key] is not None])
 
-    return render_template("summaryTable.html",title='Summary', inGraph=inVals, outGraph=outVals, labels=labels, totalIn=round(sum(inVals),2), totalOut=round(sum(outVals),2), cat_in_name=cat_in_name, cat_in_vals=cat_in_vals, cat_out_name=cat_out_name, cat_out_vals=cat_out_vals)
+    title = 'AGGREGATED STATEMENT FOR '+month + ' ' + year + ' - ' + banks
+
+    return render_template("summaryTable.html",title=title, inGraph=inVals, outGraph=outVals, labels=labels, totalIn=round(sum(inVals),2), totalOut=round(sum(outVals),2), cat_in_name=cat_in_name, cat_in_vals=cat_in_vals, cat_out_name=cat_out_name, cat_out_vals=cat_out_vals)
 
 @app.route('/breakdown', methods=['GET', 'POST'])
 def breakdown():
