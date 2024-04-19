@@ -391,8 +391,12 @@ def append_uob_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
     dfs_uob = get_uob_raw_data(FILE_NAME, num_pages)
     df_uob = get_uob_cleaned_data(dfs_uob)
-    # Drop extra column
-    df_uob.drop(['Balance'],axis=1,inplace=True)
+    # Drop extra columns
+    columns_to_keep = ['Date', 'Description', 'Withdrawals', 'Deposits']
+    # Get the list of columns that are not in columns_to_keep
+    columns_to_drop = [col for col in df_uob.columns if col not in columns_to_keep]
+    # Drop the columns that are not in columns_to_keep
+    df_uob.drop(columns_to_drop, axis=1, inplace=True)
 
     # Categorise
     df_uob['Category'] = df_uob.apply(lambda x: categorise_transaction(x,uob_categories), axis=1)
