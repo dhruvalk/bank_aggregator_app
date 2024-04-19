@@ -61,11 +61,20 @@ def get_posb_cleaned_data(dfs):
         # Capitalize the first letter of the month abbreviation
         month_abbr = month_abbr.capitalize()
         return f"{day} {month_abbr}"
+    def validate_date(date_str):
+        try:
+            # Try to parse the date string with the specified format
+            datetime.strptime(date_str, '%d/%m/%Y')
+            # If successful, return True
+            return True
+        except ValueError:
+            # If parsing fails (ValueError), return False
+            return False
     ROWS, i = dfs.shape[0], 0
     res = pd.DataFrame(columns= dfs.columns)
     while i < ROWS:
         description = dfs.iloc[i]["Description"]
-        if pd.notna(dfs.iloc[i]["Date"]):
+        if pd.notna(dfs.iloc[i]["Date"]) and validate_date(dfs.iloc[i]["Date"]):
             if description not in description_to_remove_set:
                 newDescription = [str(dfs.iloc[i]["Description"])]
             else: 
@@ -84,8 +93,10 @@ def get_posb_cleaned_data(dfs):
                 newDescription[0] = newDescription[0][:-5]
             curr_row["Description"] = ' '.join(newDescription)
             res = pd.concat([res, curr_row.to_frame().T])
+            # print(res)
         else:
             i += 1
+    
     def convert_date_format(date_str):
         try:
             # Attempt to parse the date string
