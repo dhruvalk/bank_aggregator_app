@@ -255,6 +255,8 @@ def get_paylah_raw_data(FILE_NAME,num_pages):
         df = tabula.read_pdf(FILE_NAME, pages=page_num, silent=True, guess = True, stream = False, multiple_tables=False)
         if df:
             df = df[0]
+            columns_to_drop = [col for col in df.columns if col.startswith('Unnamed')]
+            df.drop(columns=columns_to_drop, inplace=True)
             df.columns = dfs_others.columns
             if not df.empty:
                 dfs_others = pd.concat([dfs_others, df], ignore_index=True)
@@ -293,7 +295,19 @@ def get_paylah_cleaned_data(df_paylah):
     df_copy = df_copy[pd.notna(df_copy["AMOUNT(S$)"])]
     df_copy["Ref No"] = df_copy['Ref No'].str.split(".").str.get(1)
     df_copy = df_copy.reset_index(drop=True)
-    return df_copy
+    # Remove invalid transactions
+    def is_date_valid(date_str):
+        # Define the date pattern (assuming DD MMM format)
+        date_pattern = r'\d{1,2}\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)'
+        # Check if the date string matches the pattern
+        return re.fullmatch(date_pattern, str(date_str)) is not None
+    def filter_valid_dates(df):
+        # Filter rows based on the validity of the "Date" column
+        valid_dates_mask = df["Date"].apply(is_date_valid)
+        return df[valid_dates_mask]
+    # Filter out rows with invalid dates
+    res_filtered = filter_valid_dates(df_copy)
+    return res_filtered
 
 def append_paylah_data(FILE_NAME, in_df, out_df):
     num_pages = get_num_pages(FILE_NAME)
