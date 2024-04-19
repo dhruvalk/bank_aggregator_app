@@ -33,19 +33,28 @@ The Bank Statement Aggregator currently supports the following banks:
 ### Instructions
 
 1. Clone the repository to your local machine:
- ```bash
- git clone https://github.com/dhruvalk/bank-statement-aggregator.git
- ```
+
+```bash
+git clone https://github.com/dhruvalk/bank-statement-aggregator.git
+```
+
 2. Navigate to the project directory:
+
 ```bash
 cd bank-statement-aggregator
 ```
+
 3. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
+
 4. Run the Flask application:
+
 ```bash
 python app.py
 ```
+
 5. Access the application in your web browser at http://localhost:5000.
+6. Upload your own bank statements or use the sample data provided in the app/samples folder to explore the application's features.
